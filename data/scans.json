@@ -1,0 +1,164 @@
+{
+  "4064c57c-61ce-4894-8c0b-347ea7439b6e": {
+    "id": "4064c57c-61ce-4894-8c0b-347ea7439b6e",
+    "user_id": "dc32578a-8f14-406d-8df3-5aace9032f8c",
+    "url": "http://testphp.vulnweb.com/",
+    "result": "safe",
+    "confidence": 0.88,
+    "details": {
+      "risk_level": "Low",
+      "confidence": "88.0%",
+      "risk_factors": [],
+      "top_features": [
+        {
+          "name": "url_length",
+          "importance": "16.8%"
+        },
+        {
+          "name": "num_question_marks",
+          "importance": "14.8%"
+        },
+        {
+          "name": "num_hyphens",
+          "importance": "13.9%"
+        }
+      ],
+      "recommendation": "Website appears safe"
+    },
+    "timestamp": "2025-12-23T23:58:56.602177",
+    "features": {
+      "url_length": 27,
+      "domain_length": 7,
+      "num_dots": 2,
+      "num_hyphens": 0,
+      "num_underscores": 0,
+      "num_slashes": 3,
+      "num_question_marks": 0,
+      "num_equals": 0,
+      "num_ampersands": 0,
+      "num_percent": 0,
+      "is_ip_address": 0,
+      "has_https": 0,
+      "port_present": 0,
+      "has_at_symbol": 0,
+      "has_redirect": 0,
+      "suspicious_tld": 0,
+      "num_params": 0,
+      "param_length": 0,
+      "path_depth": 0,
+      "file_extension": 0,
+      "has_login_form": 0,
+      "has_suspicious_keywords": 0.0,
+      "domain_age": 0.5,
+      "has_whois": 0.8
+    }
+  },
+  "1a663c1a-8acc-4a6b-9e7a-48fee6a0206a": {
+    "id": "1a663c1a-8acc-4a6b-9e7a-48fee6a0206a",
+    "user_id": "dc32578a-8f14-406d-8df3-5aace9032f8c",
+    "url": "https://www.hotstar.com/",
+    "result": "safe",
+    "confidence": 0.91,
+    "details": {
+      "risk_level": "Low",
+      "confidence": "91.0%",
+      "risk_factors": [],
+      "top_features": [
+        {
+          "name": "url_length",
+          "importance": "16.8%"
+        },
+        {
+          "name": "num_question_marks",
+          "importance": "14.8%"
+        },
+        {
+          "name": "num_hyphens",
+          "importance": "13.9%"
+        }
+      ],
+      "recommendation": "Website appears safe"
+    },
+    "timestamp": "2025-12-24T01:40:20.372707",
+    "features": {
+      "url_length": 24,
+      "domain_length": 7,
+      "num_dots": 2,
+      "num_hyphens": 0,
+      "num_underscores": 0,
+      "num_slashes": 3,
+      "num_question_marks": 0,
+      "num_equals": 0,
+      "num_ampersands": 0,
+      "num_percent": 0,
+      "is_ip_address": 0,
+      "has_https": 1,
+      "port_present": 0,
+      "has_at_symbol": 0,
+      "has_redirect": 0,
+      "suspicious_tld": 0,
+      "num_params": 0,
+      "param_length": 0,
+      "path_depth": 0,
+      "file_extension": 0,
+      "has_login_form": 0,
+      "has_suspicious_keywords": 0.0,
+      "domain_age": 0.5,
+      "has_whois": 0.8
+    }
+  },
+  "6abe8e65-bd22-4165-86ab-061275ffba6e": {
+    "id": "6abe8e65-bd22-4165-86ab-061275ffba6e",
+    "user_id": "dc32578a-8f14-406d-8df3-5aace9032f8c",
+    "url": "https://www.hotstar.com/in/home",
+    "result": "safe",
+    "confidence": 0.91,
+    "details": {
+      "risk_level": "Low",
+      "confidence": "91.0%",
+      "risk_factors": [],
+      "top_features": [
+        {
+          "name": "url_length",
+          "importance": "16.8%"
+        },
+        {
+          "name": "num_question_marks",
+          "importance": "14.8%"
+        },
+        {
+          "name": "num_hyphens",
+          "importance": "13.9%"
+        }
+      ],
+      "recommendation": "Website appears safe"
+    },
+    "timestamp": "2025-12-24T03:14:47.790284",
+    "features": {
+      "url_length": 31,
+      "domain_length": 7,
+      "num_dots": 2,
+      "num_hyphens": 0,
+      "num_underscores": 0,
+      "num_slashes": 4,
+      "num_question_marks": 0,
+      "num_equals": 0,
+      "num_ampersands": 0,
+      "num_percent": 0,
+      "is_ip_address": 0,
+      "has_https": 1,
+      "port_present": 0,
+      "has_at_symbol": 0,
+      "has_redirect": 0,
+      "suspicious_tld": 0,
+      "num_params": 0,
+      "param_length": 0,
+      "path_depth": 1,
+      "file_extension": 0,
+      "has_login_form": 0,
+      "has_suspicious_keywords": 0.0,
+      "domain_age": 0.5,
+      "has_whois": 0.8
+    }
+  }
+}

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Scan URL - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>Scan URL for Phishing</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Remaining scans today:</strong> {{ 10 - current_user.daily_scans }} of 10
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('scan') }}" class="scan-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            {{ form.url.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-link"></i>
+                                </span>
+                                {{ form.url(class="form-control", placeholder="https://example.com", id="scan-url") }}
+                            </div>
+                            <div class="form-text">
+                                Enter the full URL including http:// or https://
+                            </div>
+                            {% if form.url.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.url.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6><i class="fas fa-cogs me-2"></i>Scan Options</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="deepScan" checked>
+                                        <label class="form-check-label" for="deepScan">
+                                            Deep URL Analysis
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="checkDomain" checked>
+                                        <label class="form-check-label" for="checkDomain">
+                                            Domain Reputation Check
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="checkSSL" checked>
+                                        <label class="form-check-label" for="checkSSL">
+                                            SSL Certificate Check
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkContent">
+                                        <label class="form-check-label" for="checkContent">
+                                            Content Analysis
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg", onclick="showScanProgress()") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Scans</h5>
+                </div>
+                <div class="card-body">
+                    {% if scans %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>URL</th>
+                                    <th>Result</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for scan in scans[:5] %}
+                                <tr>
+                                    <td class="text-truncate" style="max-width: 200px;">
+                                        {{ scan.url }}
+                                    </td>
+                                    <td>
+                                        {% if scan.result == 'safe' %}
+                                            <span class="badge bg-success">Safe</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Phishing</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ scan.timestamp[:10] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('scan_results', scan_id=scan.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No scans yet. Start by scanning your first URL!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>How It Works</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6>1. URL Analysis</h6>
+                                <p class="small mb-0">We analyze the URL structure, domain, and path for suspicious patterns.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6>2. Feature Extraction</h6>
+                                <p class="small mb-0">Extract 24+ security features including URL length, special characters, and domain age.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6>3. ML Prediction</h6>
+                                <p class="small mb-0">Our Random Forest classifier analyzes features to detect phishing patterns.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6>4. Detailed Report</h6>
+                                <p class="small mb-0">Get a comprehensive report with confidence score and risk factors.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Scan Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Always check for HTTPS in URLs
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Look for misspelled domain names
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Be cautious of urgent login requests
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Check for excessive special characters
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-2"></i>
+                            Verify sender email addresses carefully
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Detection Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <span class="badge bg-info w-100">URL Length</span>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <span class="badge bg-info w-100">Domain Age</span>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <span class="badge bg-info w-100">SSL Check</span>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <span class="badge bg-info w-100">IP Address</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-info w-100">Suspicious TLD</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-info w-100">Keywords</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showScanProgress() {
+    const form = document.querySelector('.scan-form');
+    const button = form.querySelector('button[type="submit"]');
+    
+    // Disable button and show spinner
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    
+    // Show progress bar
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'scan-progress mt-4';
+    progressDiv.innerHTML = `
+        <div class="text-center">
+            <div class="spinner mb-3"></div>
+            <p class="mb-2">Analyzing URL for phishing indicators...</p>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+            </div>
+            <small class="text-muted">This may take a few seconds</small>
+        </div>
+    `;
+    
+    form.appendChild(progressDiv);
+}
+
+// URL validation
+document.addEventListener('DOMContentLoaded', function() {
+    const urlInput = document.getElementById('scan-url');
+    urlInput.addEventListener('blur', function() {
+        validateURL(this);
+    });
+});
+</script>
+{% endblock %}

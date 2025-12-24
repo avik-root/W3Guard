@@ -1,0 +1,18 @@
+{
+  "articles": [
+    {
+      "id": "21d47b8c-8f04-4893-9c60-29b7acde2f8f",
+      "title": "Under Maintenance",
+      "content": "The website is currently under maintenance. Thank You. From MintFire Support Team.",
+      "date": "2025-12-24T19:45:11.684773",
+      "author": "Admin"
+    },
+    {
+      "id": "5c72b9c4-41fe-48f3-a1c1-612eb5d2889e",
+      "title": "Bug Report ",
+      "content": "Contact us at mintfire.server@gmail.com",
+      "date": "2025-12-24T03:20:52.993797",
+      "author": "Admin"
+    }
+  ]
+}

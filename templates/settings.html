@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - W3Guard{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Account Settings</h4>
+                </div>
+
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-4" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="password-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#password" type="button" role="tab">
+                                <i class="fas fa-key me-2"></i>Password
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#profile" type="button" role="tab">
+                                <i class="fas fa-user me-2"></i>Profile
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="security-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#security" type="button" role="tab">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="settingsTabContent">
+                        <!-- Password Tab -->
+                        <div class="tab-pane fade show active" id="password" role="tabpanel">
+                            <form method="POST" action="{{ url_for('settings') }}">
+                                {{ form.hidden_tag() }}
+
+                                <div class="mb-3">
+                                    {{ form.current_password.label(class="form-label") }}
+                                    {{ form.current_password(class="form-control") }}
+                                    {% if form.current_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.current_password.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.new_password.label(class="form-label") }}
+                                    {{ form.new_password(class="form-control") }}
+                                    <div class="form-text">
+                                        Password must be at least 8 characters and include uppercase, lowercase, number, and special character.
+                                    </div>
+                                    {% if form.new_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.new_password.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    {{ form.confirm_password.label(class="form-label") }}
+                                    {{ form.confirm_password(class="form-control") }}
+                                    {% if form.confirm_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.confirm_password.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Profile Tab -->
+                        <div class="tab-pane fade" id="profile" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                                <div class="form-text">Email cannot be changed for security reasons.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Account Type</label>
+                                <input type="text" class="form-control" 
+                                       value="{% if current_user.is_admin %}Administrator{% else %}Standard User{% endif %}" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Member Since</label>
+                                <input type="text" class="form-control" 
+                                       value="{% if current_user.created_at %}{{ current_user.created_at.strftime('%B %d, %Y') }}{% else %}N/A{% endif %}" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Total Scans</label>
+                                <input type="text" class="form-control" value="{{ current_user.scan_count }}" readonly>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Credit Points</label>
+                                <input type="text" class="form-control" value="{{ current_user.credit_points }}" readonly>
+                                <div class="form-text">Credit points can be used for additional scans or features.</div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Contact administrators if you need to update your profile information.
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div class="tab-pane fade" id="security" role="tabpanel">
+                            <div class="mb-4">
+                                <h6><i class="fas fa-shield-alt me-2"></i>Security Status</h6>
+                                <div class="list-group">
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                <strong>Password Strength</strong>
+                                            </div>
+                                            <span class="badge bg-success">Strong</span>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-check-circle text-warning me-2"></i>
+                                                <strong>Two-Factor Authentication</strong>
+                                            </div>
+                                            <span class="badge bg-warning">Not Enabled</span>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                <strong>Last Login</strong>
+                                            </div>
+                                            <span class="text-muted">Recent</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6><i class="fas fa-history me-2"></i>Login History</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Time</th>
+                                                <th>IP Address</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Today</td>
+                                                <td>14:30</td>
+                                                <td>192.168.1.1</td>
+                                                <td><span class="badge bg-success">Success</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Yesterday</td>
+                                                <td>09:15</td>
+                                                <td>192.168.1.1</td>
+                                                <td><span class="badge bg-success">Success</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Security Recommendations</h6>
+                                <ul class="mb-0">
+                                    <li>Enable two-factor authentication for enhanced security</li>
+                                    <li>Regularly update your password</li>
+                                    <li>Review your login history periodically</li>
+                                    <li>Log out from shared computers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Account Overview</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar mb-3">
+                            <i class="fas fa-user-shield fa-4x text-primary"></i>
+                        </div>
+                        <h5>{{ current_user.email }}</h5>
+                        <p class="text-muted">
+                            {% if current_user.is_admin %}
+                                <span class="badge bg-danger">Administrator</span>
+                            {% else %}
+                                <span class="badge bg-primary">Standard User</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-search me-2"></i>Daily Scans</span>
+                            <span class="badge bg-primary">{{ current_user.daily_scans }} / 10</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-history me-2"></i>Total Scans</span>
+                            <span class="badge bg-info">{{ current_user.scan_count }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-coins me-2"></i>Credit Points</span>
+                            <span class="badge bg-success">{{ current_user.credit_points }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar me-2"></i>Member Since</span>
+                            <small class="text-muted">{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else 'N/A' }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-danger mb-3">
+                        <h6><i class="fas fa-skull-crossbones me-2"></i>Warning</h6>
+                        <p class="small mb-0">These actions are irreversible. Proceed with caution.</p>
+                    </div>
+
+                    <div class="accordion" id="userDangerZoneAccordion">
+                        <!-- Delete Account -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingDeleteAccount">
+                                <button class="accordion-button" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseDeleteAccount" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseDeleteAccount">
+                                    <i class="fas fa-trash me-2"></i>Delete Account
+                                </button>
+                            </h2>
+                            <div id="collapseDeleteAccount" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingDeleteAccount" 
+                                 data-bs-parent="#userDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Permanently delete your account and all associated data including scan history. This action cannot be undone.
+                                    </p>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmDeleteAccount">
+                                        <label class="form-check-label" for="confirmDeleteAccount">
+                                            I understand my account will be permanently deleted
+                                        </label>
+                                    </div>
+
+                                    <button class="btn btn-danger" id="deleteAccountBtn" disabled 
+                                            data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                        <i class="fas fa-trash me-1"></i>Delete My Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clear Scan History -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingClearHistory">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseClearHistory" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseClearHistory">
+                                    <i class="fas fa-broom me-2"></i>Clear Scan History
+                                </button>
+                            </h2>
+                            <div id="collapseClearHistory" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingClearHistory" 
+                                 data-bs-parent="#userDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Permanently delete all your scan records. Your account will remain active but all scan history will be erased.
+                                    </p>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmClearHistory">
+                                        <label class="form-check-label" for="confirmClearHistory">
+                                            I understand this will delete all my scan history
+                                        </label>
+                                    </div>
+
+                                    <button class="btn btn-warning" id="clearHistoryBtn" disabled onclick="clearScanHistory()">
+                                        <i class="fas fa-broom me-1"></i>Clear All Scans
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Export Data -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingExportData">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseExportData" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseExportData">
+                                    <i class="fas fa-download me-2"></i>Export Your Data
+                                </button>
+                            </h2>
+                            <div id="collapseExportData" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingExportData" 
+                                 data-bs-parent="#userDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Download all your personal data and scan history in a portable JSON format.
+                                    </p>
+
+                                    <button class="btn btn-info" onclick="exportUserData()">
+                                        <i class="fas fa-download me-1"></i>Download My Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Need Help?</h5>
+                </div>
+
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-book me-2"></i>User Guide
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="text-decoration-none">
+                                <i class="fas fa-file-alt me-2"></i>Privacy Policy
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Delete Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6>⚠️ Warning: This action cannot be undone!</h6>
+                    <p class="mb-0">All your data including scan history will be permanently deleted.</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Enter your password to confirm</label>
+                    <input type="password" class="form-control" id="confirmPassword">
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete">
+                    <label class="form-check-label" for="confirmDelete">
+                        I understand that this action is irreversible
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteAccountBtn" disabled>Delete My Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    // Danger Zone Checkbox Event Listeners
+
+    // Delete Account
+    document.getElementById('confirmDeleteAccount').addEventListener('change', function() {
+        const btn = document.querySelector('[data-bs-target="#deleteAccountModal"]');
+        btn.disabled = !this.checked;
+    });
+
+    // Modal Delete Account Button
+    const confirmPassword = document.getElementById('confirmPassword');
+    const confirmDeleteCheckbox = document.getElementById('confirmDelete');
+    const deleteModalBtn = document.querySelector('#deleteAccountModal .btn-danger');
+
+    function updateDeleteButton() {
+        deleteModalBtn.disabled = !(confirmDeleteCheckbox.checked && confirmPassword.value.length > 0);
+    }
+
+    confirmDeleteCheckbox.addEventListener('change', updateDeleteButton);
+    confirmPassword.addEventListener('input', updateDeleteButton);
+
+    deleteModalBtn.addEventListener('click', function() {
+        deleteUserAccount();
+    });
+
+    // Clear Scan History
+    document.getElementById('confirmClearHistory').addEventListener('change', function() {
+        document.getElementById('clearHistoryBtn').disabled = !this.checked;
+    });
+
+    // Action Functions
+
+    function deleteUserAccount() {
+        if (!confirm('⚠️ This will permanently delete your account. Click OK to proceed.')) {
+            return;
+        }
+
+        if (!confirm('FINAL WARNING: Your account will be deleted forever. Click OK to confirm.')) {
+            return;
+        }
+
+        alert('✓ Account deletion would be processed.\n\nThe following would happen:\n- Account deleted\n- All scan records removed\n- All personal data erased\n- Logout automatically');
+
+        // In production:
+        // fetch('/delete-account', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ password: confirmPassword.value })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     alert('Your account has been deleted.');
+        //     window.location.href = url_for('logout');
+        // });
+    }
+
+    function clearScanHistory() {
+        if (!confirm('⚠️ This will delete all your scan records. Continue?')) {
+            return;
+        }
+
+        if (!confirm('Are you sure? Your scan history will be permanently deleted.')) {
+            return;
+        }
+
+        alert('✓ Scan history would be cleared.\n\nYour account statistics would be reset.');
+
+        // In production:
+        // fetch('/clear-history', { method: 'POST' })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         alert('Scan history cleared.');
+        //         location.reload();
+        //     });
+    }
+
+    function exportUserData() {
+        alert('✓ Your data export would include:\n\n- Account information\n- All scan records\n- Scan results\n- Statistics\n\nFile would be downloaded as JSON.');
+
+        // In production:
+        // fetch('/export-user-data', { method: 'GET' })
+        //     .then(response => response.blob())
+        //     .then(blob => {
+        //         const url = window.URL.createObjectURL(blob);
+        //         const link = document.createElement('a');
+        //         link.href = url;
+        //         link.download = `w3guard-data-${new Date().toISOString().split('T')[0]}.json`;
+        //         link.click();
+        //     });
+    }
+
+    // Clear error when typing in password field
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
+</script>
+{% endblock %}

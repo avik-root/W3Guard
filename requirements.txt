@@ -1,0 +1,17 @@
+Flask
+Flask-Bcrypt
+Flask-Login
+Flask-WTF
+WTForms
+scikit-learn
+pandas
+numpy
+whois
+requests
+beautifulsoup4
+tldextract
+python-dateutil
+plotly
+email-validator
+pillow
+captcha

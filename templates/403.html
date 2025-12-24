@@ -1,0 +1,60 @@
+<!-- 403.html -->
+{% extends "base.html" %}
+
+{% block title %}Access Denied - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center py-5">
+            <div class="error-container">
+                <h1 class="error-code display-1">403</h1>
+                <h2 class="error-title mb-4">Access Denied</h2>
+                <p class="lead text-muted mb-5">
+                    You don't have permission to access this page.
+                </p>
+                <div class="alert alert-danger mb-4">
+                    <i class="fas fa-ban me-2"></i>
+                    This area is restricted to authorized personnel only.
+                </div>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0;
+}
+
+.error-title {
+    color: #2c3e50;
+}
+</style>
+{% endblock %}

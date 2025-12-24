@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - W3Guard Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-white">System Settings</h1>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+            
+            <div class="row">
+                <!-- Left Column - Settings Forms -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>General Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('update_admin_settings') }}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Site Name</label>
+                                        <input type="text" class="form-control" name="site_name" 
+                                               value="{{ settings.site_name }}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Contact Email</label>
+                                        <input type="email" class="form-control" name="contact_email" 
+                                               value="{{ settings.contact_email }}" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Max Scans Per Day</label>
+                                        <input type="number" class="form-control" name="max_scans_per_day" 
+                                               value="{{ settings.max_scans_per_day }}" min="1" max="100">
+                                        <div class="form-text">Maximum number of scans allowed per user per day.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Default User Credits</label>
+                                        <input type="number" class="form-control" name="default_credits" 
+                                               value="{{ settings.default_credits|default(10) }}" min="0">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Site Description</label>
+                                    <textarea class="form-control" name="site_description" rows="3">{{ settings.site_description|default('') }}</textarea>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save General Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="securitySettings">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="maintenanceMode" 
+                                               {% if settings.maintenance_mode %}checked{% endif %}
+                                               onchange="toggleMaintenance()">
+                                        <label class="form-check-label" for="maintenanceMode">
+                                            Maintenance Mode
+                                        </label>
+                                    </div>
+                                    <div class="form-text">When enabled, only administrators can access the site.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="enableCaptcha" checked>
+                                        <label class="form-check-label" for="enableCaptcha">
+                                            Enable CAPTCHA
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="enable2FA">
+                                        <label class="form-check-label" for="enable2FA">
+                                            Enable Two-Factor Authentication
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Failed Login Attempts Before Lockout</label>
+                                    <input type="range" class="form-range" min="1" max="10" value="5" id="maxAttempts">
+                                    <div class="d-flex justify-content-between">
+                                        <small>1</small>
+                                        <small id="attemptsValue">5 attempts</small>
+                                        <small>10</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Account Lockout Duration (minutes)</label>
+                                    <select class="form-select" id="lockoutDuration">
+                                        <option value="15">15 minutes</option>
+                                        <option value="30" selected>30 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="1440">24 hours</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-warning" onclick="saveSecuritySettings()">
+                                        <i class="fas fa-save me-2"></i>Save Security Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-robot me-2"></i>ML Model Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="mb-2">Model Accuracy</h6>
+                                            <h2 class="text-success mb-0">92.4%</h2>
+                                            <small class="text-muted">Current Model</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="mb-2">Features Used</h6>
+                                            <h2 class="text-info mb-0">24</h2>
+                                            <small class="text-muted">Detection Features</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Model Confidence Threshold</label>
+                                <input type="range" class="form-range" min="50" max="95" value="75" id="confidenceThreshold">
+                                <div class="d-flex justify-content-between">
+                                    <small>50%</small>
+                                    <small id="thresholdValue">75% confidence</small>
+                                    <small>95%</small>
+                                </div>
+                                <div class="form-text">Lower values catch more phishing but may have more false positives.</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-info" onclick="retrainModel()">
+                                    <i class="fas fa-brain me-2"></i>Retrain ML Model
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewModelDetails()">
+                                    <i class="fas fa-chart-bar me-2"></i>View Model Statistics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - System Info -->
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>System Version</span>
+                                    <span class="text-muted">W3Guard v2.1.0</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Database Type</span>
+                                    <span class="text-muted">JSON Files</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Total Users</span>
+                                    <span class="text-muted">{{ total_users }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Total Scans</span>
+                                    <span class="text-muted">{{ total_scans }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Uptime</span>
+                                    <span class="text-muted">24 days</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Last Backup</span>
+                                    <span class="text-muted">Today, 02:00</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>System Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-circle text-success me-2"></i>
+                                            <span>Web Server</span>
+                                        </div>
+                                        <span class="badge bg-success">Online</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-circle text-success me-2"></i>
+                                            <span>ML Model</span>
+                                        </div>
+                                        <span class="badge bg-success">Active</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-circle text-success me-2"></i>
+                                            <span>Database</span>
+                                        </div>
+                                        <span class="badge bg-success">Connected</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-circle text-{% if settings.maintenance_mode %}warning{% else %}success{% endif %} me-2"></i>
+                                            <span>Maintenance Mode</span>
+                                        </div>
+                                        <span class="badge bg-{% if settings.maintenance_mode %}warning{% else %}secondary{% endif %}">
+                                            {% if settings.maintenance_mode %}ON{% else %}OFF{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-database me-2"></i>Backup & Restore</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" onclick="createBackup()">
+                                    <i class="fas fa-download me-2"></i>Create Backup
+                                </button>
+                                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#restoreModal">
+                                    <i class="fas fa-upload me-2"></i>Restore Backup
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="optimizeDatabase()">
+                                    <i class="fas fa-broom me-2"></i>Optimize Database
+                                </button>
+                            </div>
+                            
+                            <hr>
+                            
+                            <h6>Recent Backups</h6>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <small>backup_2025_01_15.zip</small>
+                                        <small class="text-muted">Today, 02:00</small>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <small>backup_2025_01_14.zip</small>
+                                        <small class="text-muted">Yesterday, 02:00</small>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <small>backup_2025_01_13.zip</small>
+                                        <small class="text-muted">2 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger">
+                                <h6>Warning: Irreversible Actions</h6>
+                                <p class="small mb-3">These actions cannot be undone. Proceed with extreme caution.</p>
+                                
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#resetModal">
+                                        <i class="fas fa-redo me-2"></i>Reset All Data
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="clearLogs()">
+                                        <i class="fas fa-trash me-2"></i>Clear All Logs
+                                    </button>
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#shutdownModal">
+                                        <i class="fas fa-power-off me-2"></i>Shutdown System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restore Backup Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restore from Backup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Select Backup File</label>
+                    <select class="form-select" id="backupFile">
+                        <option value="backup_2025_01_15.zip">backup_2025_01_15.zip (Latest)</option>
+                        <option value="backup_2025_01_14.zip">backup_2025_01_14.zip</option>
+                        <option value="backup_2025_01_13.zip">backup_2025_01_13.zip</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Restore Options</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="restoreUsers" checked>
+                        <label class="form-check-label" for="restoreUsers">Restore Users</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="restoreScans" checked>
+                        <label class="form-check-label" for="restoreScans">Restore Scan Data</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="restoreSettings" checked>
+                        <label class="form-check-label" for="restoreSettings">Restore Settings</label>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This will overwrite existing data. Make sure you have a current backup.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="restoreBackup()">Restore</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Data Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Reset All Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-skull-crossbones me-2"></i>Extreme Danger</h6>
+                    <p>This will delete ALL data including users, scans, and settings. This action cannot be undone!</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Type "RESET" to confirm</label>
+                    <input type="text" class="form-control" id="resetConfirm" placeholder="RESET">
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmReset">
+                    <label class="form-check-label" for="confirmReset">
+                        I understand this will delete all data permanently
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="resetButton" disabled onclick="resetAllData()">
+                    Reset All Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shutdown Modal -->
+<div class="modal fade" id="shutdownModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Shutdown System</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-power-off me-2"></i>System Shutdown</h6>
+                    <p>This will gracefully shut down the W3Guard system. All users will be logged out and the service will stop.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Shutdown Reason</label>
+                    <select class="form-select" id="shutdownReason">
+                        <option value="maintenance">Maintenance</option>
+                        <option value="update">System Update</option>
+                        <option value="emergency">Emergency</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Estimated Downtime</label>
+                    <input type="text" class="form-control" id="downtime" placeholder="e.g., 30 minutes">
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="notifyUsers">
+                    <label class="form-check-label" for="notifyUsers">
+                        Notify users before shutdown
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="shutdownSystem()">
+                    Shutdown System
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Range slider updates
+document.addEventListener('DOMContentLoaded', function() {
+    const maxAttempts = document.getElementById('maxAttempts');
+    const attemptsValue = document.getElementById('attemptsValue');
+    const confidenceThreshold = document.getElementById('confidenceThreshold');
+    const thresholdValue = document.getElementById('thresholdValue');
+    
+    maxAttempts.addEventListener('input', function() {
+        attemptsValue.textContent = this.value + ' attempts';
+    });
+    
+    confidenceThreshold.addEventListener('input', function() {
+        thresholdValue.textContent = this.value + '% confidence';
+    });
+    
+    // Reset modal confirmation
+    const resetConfirm = document.getElementById('resetConfirm');
+    const confirmReset = document.getElementById('confirmReset');
+    const resetButton = document.getElementById('resetButton');
+    
+    function updateResetButton() {
+        resetButton.disabled = !(resetConfirm.value === 'RESET' && confirmReset.checked);
+    }
+    
+    resetConfirm.addEventListener('input', updateResetButton);
+    confirmReset.addEventListener('change', updateResetButton);
+});
+
+// Security settings functions
+function saveSecuritySettings() {
+    const maintenanceMode = document.getElementById('maintenanceMode').checked;
+    const maxAttempts = document.getElementById('maxAttempts').value;
+    const lockoutDuration = document.getElementById('lockoutDuration').value;
+    
+    // In real app, make API call to save settings
+    alert(`Security settings would be saved:
+    - Maintenance Mode: ${maintenanceMode}
+    - Max Attempts: ${maxAttempts}
+    - Lockout Duration: ${lockoutDuration} minutes`);
+}
+
+function retrainModel() {
+    if (confirm('Retrain the ML model? This may take several minutes.')) {
+        alert('ML model retraining would start. In real app, this would trigger model training.');
+    }
+}
+
+function viewModelDetails() {
+    alert('Model statistics would be displayed. In real app, this would show detailed metrics.');
+}
+
+// Backup functions
+function createBackup() {
+    alert('Backup would be created. In real app, this would generate a backup file.');
+}
+
+function restoreBackup() {
+    const backupFile = document.getElementById('backupFile').value;
+    alert(`Backup ${backupFile} would be restored. In real app, this would restore from backup.`);
+    $('#restoreModal').modal('hide');
+}
+
+function optimizeDatabase() {
+    if (confirm('Optimize database? This may improve performance.')) {
+        alert('Database optimization would run. In real app, this would optimize JSON files.');
+    }
+}
+
+// Danger zone functions
+function resetAllData() {
+    if (confirm('Are you absolutely sure? This will DELETE ALL DATA permanently!')) {
+        alert('All data would be reset. In real app, this would delete all JSON files and recreate defaults.');
+        $('#resetModal').modal('hide');
+    }
+}
+
+function clearLogs() {
+    if (confirm('Clear all system logs?')) {
+        alert('All logs would be cleared. In real app, this would delete log files.');
+    }
+}
+
+function shutdownSystem() {
+    if (confirm('Shutdown the W3Guard system?')) {
+        alert('System would shutdown. In real app, this would stop the Flask server.');
+        $('#shutdownModal').modal('hide');
+    }
+}
+</script>
+{% endblock %}

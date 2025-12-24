@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Login - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card fade-in">
+                <div class="card-header text-center">
+                    <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login to W3Guard</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('login') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", placeholder="Enter your email") }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control", placeholder="Enter your password") }}
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label">Security Verification</label>
+                                <button type="button" id="refresh-math" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-redo"></i> New Question
+                                </button>
+                            </div>
+                            <div class="math-container bg-light p-3 rounded mb-2 text-center">
+                                <h5 class="mb-0">
+                                    What is <span id="math-question" class="fw-bold">{{ math_question }}</span> ?
+                                </h5>
+                            </div>
+                            {{ form.math_answer(class="form-control", placeholder="Enter the answer", id="math-answer") }}
+                            {% if form.math_answer.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.math_answer.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Solve the simple math problem to verify you're human</small>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-2">Don't have an account?</p>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-plus me-2"></i>Register Now
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Secure login protected by math verification
+                    </small>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-body">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Security Tips</h6>
+                    <ul class="small">
+                        <li>Never share your password with anyone</li>
+                        <li>Make sure you're on the official W3Guard website</li>
+                        <li>Log out after each session, especially on shared computers</li>
+                        <li>Use strong, unique passwords</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh math question
+    const refreshBtn = document.getElementById('refresh-math');
+    const mathQuestion = document.getElementById('math-question');
+    const mathAnswer = document.getElementById('math-answer');
+    
+    refreshBtn.addEventListener('click', function() {
+        fetch('/new_math_question')
+            .then(response => response.json())
+            .then(data => {
+                mathQuestion.textContent = data.question;
+                mathAnswer.value = '';
+                mathAnswer.focus();
+            })
+            .catch(error => {
+                console.error('Error refreshing math question:', error);
+            });
+    });
+    
+    // Clear error when user starts typing
+    mathAnswer.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
+});
+</script>
+{% endblock %}

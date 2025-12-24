@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard Overview</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card">
+                                <i class="fas fa-shield-alt"></i>
+                                <h3>{{ current_user.scan_count }}</h3>
+                                <p>Total Scans</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card">
+                                <i class="fas fa-bolt"></i>
+                                <h3>{{ remaining_scans }}</h3>
+                                <p>Scans Remaining Today</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card">
+                                <i class="fas fa-coins"></i>
+                                <h3>{{ current_user.credit_points }}</h3>
+                                <p>Credit Points</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card">
+                                <i class="fas fa-user-shield"></i>
+                                <h3>{% if current_user.is_admin %}Admin{% else %}User{% endif %}</h3>
+                                <p>Account Type</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if remaining_scans > 0 %}
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('scan') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search me-2"></i>Scan New URL
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Daily scan limit reached. You can scan again tomorrow.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-history me-2"></i>Recent Scans</h4>
+                </div>
+                <div class="card-body">
+                    {% if scans %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>URL</th>
+                                        <th>Result</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for scan in scans %}
+                                    <tr>
+                                        <td class="text-truncate" style="max-width: 200px;">
+                                            {{ scan.url }}
+                                        </td>
+                                        <td>
+                                            {% if scan.result == 'safe' %}
+                                                <span class="badge bg-success">Safe</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Phishing</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ scan.timestamp[:10] }}</td>
+                                        <td>
+                                            <a href="{{ url_for('scan_results', scan_id=scan.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('scan_history') }}" class="btn btn-outline-secondary">
+                                View Full History
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted">No scans yet. Start by scanning your first URL!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('scan') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-search me-2"></i>Scan URL
+                        </a>
+                        <a href="{{ url_for('scan_history') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>View Scan History
+                        </a>
+                        <a href="{{ url_for('settings') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i>Account Settings
+                        </a>
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-shield me-2"></i>Admin Dashboard
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Your Scan Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userChart" width="300" height="200"></canvas>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Safe: {{ safe_count }} | Phishing: {{ phishing_count }} | Total: {{ total_scans }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Check for HTTPS in URLs
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Look for misspelled domain names
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Be cautious of urgent login requests
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Verify email sender addresses
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Use unique passwords for each site
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // User stats chart - REAL DATA
+    const ctx = document.getElementById('userChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Safe URLs', 'Phishing URLs'],
+            datasets: [{
+                data: [{{ safe_count }}, {{ phishing_count }}],
+                backgroundColor: [
+                    '#27ae60',
+                    '#e74c3c'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+{
+  "maintenance_mode": false,
+  "site_name": "W3Guard",
+  "contact_email": "admin@w3guard.edu",
+  "max_scans_per_day": "10",
+  "default_credits": "10",
+  "site_description": "Advanced Phishing Detection System"
+}

@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Settings - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Settings Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>System Settings
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_admin_settings') }}">
+                        <!-- Site Name -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-globe me-2"></i>Site Name
+                            </label>
+                            <input type="text" class="form-control" name="site_name" 
+                                   value="{{ settings.get('site_name', 'W3Guard') }}" required>
+                            <small class="form-text text-muted">The name of your application</small>
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Contact Email
+                            </label>
+                            <input type="email" class="form-control" name="contact_email" 
+                                   value="{{ settings.get('contact_email', 'admin@w3guard.edu') }}" required>
+                            <small class="form-text text-muted">Admin contact email address</small>
+                        </div>
+
+                        <!-- Max Scans Per Day -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-search me-2"></i>Max Scans Per Day
+                            </label>
+                            <input type="number" class="form-control" name="max_scans_per_day" 
+                                   value="{{ settings.get('max_scans_per_day', 10) }}" min="1" max="100" required>
+                            <small class="form-text text-muted">Maximum scans allowed per user per day</small>
+                        </div>
+
+                        <!-- Default Credits -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-coins me-2"></i>Default Credits
+                            </label>
+                            <input type="number" class="form-control" name="default_credits" 
+                                   value="{{ settings.get('default_credits', 10) }}" min="0" max="1000" required>
+                            <small class="form-text text-muted">Default credits for new users</small>
+                        </div>
+
+                        <!-- Site Description -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-file-alt me-2"></i>Site Description
+                            </label>
+                            <textarea class="form-control" name="site_description" rows="3" required>{{ settings.get('site_description', 'Advanced Phishing Detection System') }}</textarea>
+                            <small class="form-text text-muted">Brief description of your system</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Maintenance Mode Card -->
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hammer me-2"></i>Maintenance Mode
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Put your system in maintenance mode to prevent users from accessing it while you perform updates.
+                    </p>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="maintenanceToggle" 
+                               {% if settings.get('maintenance_mode', False) %}checked{% endif %}>
+                        <label class="form-check-label" for="maintenanceToggle">
+                            Enable Maintenance Mode
+                        </label>
+                    </div>
+
+                    <div class="alert alert-info" id="maintenanceStatus" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="maintenanceStatusText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information Card -->
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>System Information
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Python Version</h6>
+                            <code class="text-break">{{ system_info.python_version.split()[0] }}</code>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Platform</h6>
+                            <code class="text-break">{{ system_info.platform }}</code>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Flask Version</h6>
+                            <code>{{ system_info.flask_version }}</code>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Total Users</h6>
+                            <code>{{ total_users }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone Section -->
+            <div class="card border-danger mt-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-danger mb-3">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-skull-crossbones me-2"></i>Warning
+                        </h6>
+                        <p class="small mb-0">These actions are irreversible and will affect the entire system. Proceed with extreme caution.</p>
+                    </div>
+
+                    <div class="accordion" id="adminDangerZoneAccordion">
+                        <!-- Reset All Scans -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingResetScans">
+                                <button class="accordion-button" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseResetScans" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseResetScans">
+                                    <i class="fas fa-trash me-2"></i>Reset All System Scans
+                                </button>
+                            </h2>
+                            <div id="collapseResetScans" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingResetScans" 
+                                 data-bs-parent="#adminDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Permanently delete <strong>{{ total_scans }} scan records</strong> from the database. 
+                                        Users will retain their accounts but their scan history will be erased.
+                                    </p>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmResetScans">
+                                        <label class="form-check-label" for="confirmResetScans">
+                                            I understand this will permanently delete {{ total_scans }} scan records
+                                        </label>
+                                    </div>
+
+                                    <button class="btn btn-danger" id="resetScansBtn" disabled onclick="resetAllScans()">
+                                        <i class="fas fa-trash me-1"></i>Delete All Scans
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reset All Databases -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingResetDatabase">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseResetDatabase" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseResetDatabase">
+                                    <i class="fas fa-database me-2"></i>Reset Entire Database
+                                </button>
+                            </h2>
+                            <div id="collapseResetDatabase" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingResetDatabase" 
+                                 data-bs-parent="#adminDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        <strong>⚠️ CRITICAL:</strong> This will delete <strong>{{ total_users }} users</strong> and 
+                                        <strong>{{ total_scans }} scans</strong>. This action cannot be undone.
+                                    </p>
+                                    
+                                    <div class="alert alert-warning mb-3">
+                                        <small>
+                                            <strong>Before proceeding:</strong>
+                                            <ul class="mb-0 ps-3">
+                                                <li>Back up all data</li>
+                                                <li>Notify all users if needed</li>
+                                                <li>Document important records</li>
+                                            </ul>
+                                        </small>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmResetDB1">
+                                        <label class="form-check-label" for="confirmResetDB1">
+                                            I understand this will delete ALL users and scans
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmResetDB2">
+                                        <label class="form-check-label" for="confirmResetDB2">
+                                            I have backed up all necessary data
+                                        </label>
+                                    </div>
+
+                                    <button class="btn btn-danger" id="resetDatabaseBtn" disabled onclick="resetDatabase()">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Reset Entire Database
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clear Cache -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingClearCache">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseClearCache" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseClearCache">
+                                    <i class="fas fa-broom me-2"></i>Clear Application Cache
+                                </button>
+                            </h2>
+                            <div id="collapseClearCache" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingClearCache" 
+                                 data-bs-parent="#adminDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Clear all cached data and temporary files. This is usually safe and can improve performance.
+                                    </p>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmClearCache">
+                                        <label class="form-check-label" for="confirmClearCache">
+                                            I want to clear the application cache
+                                        </label>
+                                    </div>
+
+                                    <button class="btn btn-warning" id="clearCacheBtn" disabled onclick="clearCache()">
+                                        <i class="fas fa-broom me-1"></i>Clear Cache
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Export Data -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingExportData">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseExportData" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseExportData">
+                                    <i class="fas fa-download me-2"></i>Export System Data
+                                </button>
+                            </h2>
+                            <div id="collapseExportData" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingExportData" 
+                                 data-bs-parent="#adminDangerZoneAccordion">
+                                <div class="accordion-body">
+                                    <p class="small text-muted mb-3">
+                                        Export all system data to a JSON backup file for safekeeping or migration.
+                                    </p>
+
+                                    <button class="btn btn-info" onclick="exportData()">
+                                        <i class="fas fa-download me-1"></i>Export All Data as JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Statistics Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>System Statistics
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-users me-2"></i>Total Users</h6>
+                        <h3 class="text-primary">{{ total_users }}</h3>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6><i class="fas fa-search me-2"></i>Total Scans</h6>
+                        <h3 class="text-info">{{ total_scans }}</h3>
+                    </div>
+
+                    <div>
+                        <h6><i class="fas fa-database me-2"></i>Data Size</h6>
+                        <p class="text-muted">
+                            Users: {{ (total_users * 2)|string }} KB
+                            <br>Scans: {{ (total_scans * 5)|string }} KB
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i>Manage Users
+                        </a>
+                        <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i>View Dashboard
+                        </a>
+                        <button onclick="toggleMaintenance()" class="list-group-item list-group-item-action text-start">
+                            <i class="fas fa-hammer me-2"></i>Toggle Maintenance
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    // Maintenance Mode Toggle
+    document.getElementById('maintenanceToggle').addEventListener('change', function() {
+        toggleMaintenanceMode(this.checked);
+    });
+
+    function toggleMaintenanceMode(enabled) {
+        fetch('/admin/maintenance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const statusDiv = document.getElementById('maintenanceStatus');
+            const statusText = document.getElementById('maintenanceStatusText');
+            
+            if (data.maintenance_mode) {
+                statusText.textContent = '✓ Maintenance mode is ENABLED. Users cannot access the system.';
+                statusDiv.classList.remove('alert-success');
+                statusDiv.classList.add('alert-warning');
+            } else {
+                statusText.textContent = '✓ Maintenance mode is DISABLED. System is online.';
+                statusDiv.classList.remove('alert-warning');
+                statusDiv.classList.add('alert-success');
+            }
+            
+            statusDiv.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error toggling maintenance mode');
+        });
+    }
+
+    // Checkbox Event Listeners for Danger Zone
+
+    // Reset Scans
+    document.getElementById('confirmResetScans').addEventListener('change', function() {
+        document.getElementById('resetScansBtn').disabled = !this.checked;
+    });
+
+    // Reset Database (requires both checkboxes)
+    document.getElementById('confirmResetDB1').addEventListener('change', updateResetDatabaseButton);
+    document.getElementById('confirmResetDB2').addEventListener('change', updateResetDatabaseButton);
+
+    function updateResetDatabaseButton() {
+        const check1 = document.getElementById('confirmResetDB1').checked;
+        const check2 = document.getElementById('confirmResetDB2').checked;
+        document.getElementById('resetDatabaseBtn').disabled = !(check1 && check2);
+    }
+
+    // Clear Cache
+    document.getElementById('confirmClearCache').addEventListener('change', function() {
+        document.getElementById('clearCacheBtn').disabled = !this.checked;
+    });
+
+    // Danger Zone Action Functions
+
+    function resetAllScans() {
+        if (!confirm('⚠️ This will permanently delete ALL scan records. Users will lose their scan history. Continue?')) {
+            return;
+        }
+
+        if (!confirm('This is your FINAL WARNING. All {{ total_scans }} scans will be deleted. Click OK to proceed.')) {
+            return;
+        }
+
+        alert('✓ Reset scans feature would be implemented with backend API.\n\nImplementation would:\n- Delete all scan records\n- Reset user scan counts\n- Clear scan statistics\n- Log the action');
+        
+        // In production, make API call here
+        // fetch('/admin/reset-scans', { method: 'POST' })
+    }
+
+    function resetDatabase() {
+        if (!confirm('⚠️ CRITICAL: This will delete ALL users and scans. The entire database will be reset. This CANNOT be undone. Continue?')) {
+            return;
+        }
+
+        if (!confirm('FINAL WARNING: You are about to delete {{ total_users }} users and {{ total_scans }} scans. Type YES in the next prompt to confirm.')) {
+            return;
+        }
+
+        const confirmation = prompt('Type YES to confirm database reset (or click Cancel to abort):');
+        if (confirmation !== 'YES') {
+            alert('Database reset cancelled.');
+            return;
+        }
+
+        alert('✓ Database reset feature would be implemented with backend API.\n\nThis would:\n- Delete all users\n- Delete all scans\n- Reset system to initial state\n- Create audit log\n- Notify admin via email');
+
+        // In production, make API call here
+        // fetch('/admin/reset-database', { method: 'POST' })
+    }
+
+    function clearCache() {
+        alert('✓ Cache clear feature would be implemented with backend API.\n\nThis would:\n- Clear application cache\n- Remove temporary files\n- Clear session data\n- Optimize performance');
+
+        // In production, make API call here
+        // fetch('/admin/clear-cache', { method: 'POST' })
+    }
+
+    function exportData() {
+        alert('✓ Export data feature would be implemented with backend API.\n\nThis would:\n- Export all users\n- Export all scans\n- Export all settings\n- Generate JSON backup\n- Download as file');
+
+        // In production, make API call here
+        // fetch('/admin/export-data', { method: 'GET' })
+        //     .then(response => response.blob())
+        //     .then(blob => {
+        //         const url = window.URL.createObjectURL(blob);
+        //         const link = document.createElement('a');
+        //         link.href = url;
+        //         link.download = `w3guard-backup-${new Date().toISOString().split('T')[0]}.json`;
+        //         link.click();
+        //     });
+    }
+
+    function toggleMaintenance() {
+        const toggle = document.getElementById('maintenanceToggle');
+        toggle.checked = !toggle.checked;
+        toggleMaintenanceMode(toggle.checked);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "dc32578a-8f14-406d-8df3-5aace9032f8c": {
+    "id": "dc32578a-8f14-406d-8df3-5aace9032f8c",
+    "email": "test@test.com",
+    "password": "$2b$12$2FcUBZi094mOrNuAcqab..TYpJOWkpVkhGC89nS4CfDgvt27AhJP6",
+    "is_admin": false,
+    "created_at": "2025-12-23T23:57:56.984723",
+    "scan_count": 3,
+    "daily_scans": 2,
+    "last_scan_date": "2025-12-24T03:14:47.791535",
+    "credit_points": 0,
+    "failed_attempts": 0,
+    "locked_until": null
+  },
+  "3f004160-1f43-40d0-9162-3c835c8bb842": {
+    "id": "3f004160-1f43-40d0-9162-3c835c8bb842",
+    "email": "admin.1@mintfire.com",
+    "password": "$2b$12$OEK5ZXj4vn9KkcW8NC5niO4jDZfs5d8NhzSLEyTjmq71NNG81rtK2",
+    "is_admin": true,
+    "created_at": "2025-12-24T18:21:31.812433",
+    "scan_count": 0,
+    "daily_scans": 0,
+    "last_scan_date": null,
+    "credit_points": 1000,
+    "failed_attempts": 0,
+    "locked_until": null
+  }
+}

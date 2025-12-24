@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}W3Guard - Advanced Phishing Detection{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="W3Guard Logo" height=100 weight=100>W3Guard
+                </h1>
+                <p class="lead mb-4">
+                    Developed by Anusha and Avik | MinFire
+                </p>
+                <p class="lead mb-4">
+                    Advanced AI-Powered Phishing Detection System
+                </p>
+                <p class="mb-5">
+                    Protect yourself from malicious websites with our state-of-the-art machine learning 
+                    detection system. Analyze URLs in real-time and get detailed security reports.
+                </p>
+                
+                <div class="d-flex justify-content-center gap-3 mb-5">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Get Started Free
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('scan') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Scan URL Now
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="stats row justify-content-center">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="fw-bold">24+</h3>
+                            <p class="mb-0">Detection Features</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="fw-bold">92%</h3>
+                            <p class="mb-0">Accuracy Rate</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="fw-bold">10</h3>
+                            <p class="mb-0">Daily Free Scans</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="fw-bold">SSL</h3>
+                            <p class="mb-0">Secure Connection</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="section-title mb-4">How W3Guard Protects You</h2>
+                <p class="lead text-muted">
+                    Our multi-layered detection system analyzes URLs using advanced techniques
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-link fa-2x text-primary"></i>
+                    </div>
+                    <h5>URL Analysis</h5>
+                    <p class="text-muted">
+                        Deep analysis of URL structure, length, and special characters for suspicious patterns.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-globe fa-2x text-primary"></i>
+                    </div>
+                    <h5>Domain Check</h5>
+                    <p class="text-muted">
+                        Verify domain age, registration details, and reputation using multiple sources.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-brain fa-2x text-primary"></i>
+                    </div>
+                    <h5>AI Detection</h5>
+                    <p class="text-muted">
+                        Machine learning models trained on thousands of phishing and legitimate URLs.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card text-center p-4 h-100">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                    </div>
+                    <h5>Real-time Scan</h5>
+                    <p class="text-muted">
+                        Instant scanning with detailed reports and confidence scores for every URL.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="section-title mb-4">Simple & Effective Process</h2>
+                <p class="lead text-muted">
+                    Three easy steps to secure browsing
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card text-center p-4">
+                    <div class="step-number">1</div>
+                    <h5>Register Account</h5>
+                    <p class="text-muted">
+                        Create your free account with secure authentication and CAPTCHA protection.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center p-4">
+                    <div class="step-number">2</div>
+                    <h5>Paste URL</h5>
+                    <p class="text-muted">
+                        Copy any suspicious URL and paste it into our scanning interface.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center p-4">
+                    <div class="step-number">3</div>
+                    <h5>Get Results</h5>
+                    <p class="text-muted">
+                        Receive instant analysis with risk factors and security recommendations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News Section -->
+<section class="news-section py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="section-title mb-4">Latest Security News</h2>
+                <p class="lead text-muted">
+                    Stay updated with the latest phishing threats and security advisories
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% if news %}
+                {% for article in news[:3] %}
+                <div class="col-md-4">
+                    <div class="news-card card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ article.title }}</h5>
+                            <p class="card-text text-muted">
+                                {{ article.content[:150] }}...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ article.date[:10] }}</small>
+                                <small class="text-muted">By {{ article.author }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p class="text-muted">No news articles available at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if current_user.is_admin %}
+        <div class="text-center mt-4">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addNewsModal">
+                <i class="fas fa-plus me-2"></i>Add News Article
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">Ready to Secure Your Browsing?</h2>
+                <p class="lead mb-5">
+                    Join thousands of users who trust W3Guard for phishing detection.
+                    Get 10 free scans daily with detailed security reports.
+                </p>
+                
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Start Free Now
+                </a>
+                {% else %}
+                <a href="{{ url_for('scan') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-search me-2"></i>Scan Your First URL
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add News Modal (for admins) -->
+{% if current_user.is_admin %}
+<div class="modal fade" id="addNewsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add News Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form onsubmit="addNews(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" id="newsTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        <textarea class="form-control" id="newsContent" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add News</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+async function addNews(event) {
+    event.preventDefault();
+    const title = document.getElementById('newsTitle').value;
+    const content = document.getElementById('newsContent').value;
+    
+    try {
+        const response = await fetch('/admin/news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, content })
+        });
+        
+        if (response.ok) {
+            alert('News added successfully!');
+            location.reload();
+        } else {
+            alert('Failed to add news');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add news');
+    }
+}
+</script>
+{% endif %}
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0 0 20px 20px;
+}
+
+.stat-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.feature-card, .step-card, .news-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.feature-card:hover, .step-card:hover, .news-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 20px;
+}
+
+.section-title {
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: #3498db;
+}
+
+.cta-section {
+    border-radius: 20px;
+}
+</style>
+{% endblock %}

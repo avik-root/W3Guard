@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - W3Guard Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-white">User Management</h1>
+                <div>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-user-plus me-2"></i>Add User
+                    </button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+            
+            <!-- User Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ users|length }}</h3>
+                            <p class="text-muted mb-0">Total Users</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ users|selectattr('is_admin')|list|length }}</h3>
+                            <p class="text-muted mb-0">Administrators</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ users|rejectattr('is_admin')|list|length }}</h3>
+                            <p class="text-muted mb-0">Regular Users</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">{{ today_scans }}</h3>
+                            <p class="text-muted mb-0">Today's Scans</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>All Users</h5>
+                        <div class="input-group" style="width: 300px;">
+                            <input type="text" class="form-control" placeholder="Search users..." id="searchUsers">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>Account Type</th>
+                                    <th>Scans</th>
+                                    <th>Credit Points</th>
+                                    <th>Created</th>
+                                    <th>Last Active</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_id, user in users.items() %}
+                                <tr id="user-{{ user_id }}">
+                                    <td><small class="text-muted">{{ user_id[:8] }}...</small></td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                            <span class="badge bg-danger">Admin</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">User</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; width: 80px;">
+                                            <div class="progress-bar bg-info" 
+                                                 style="width: {{ min(user.scan_count, 100) }}%">
+                                            </div>
+                                        </div>
+                                        <small>{{ user.scan_count }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ user.credit_points }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ user.created_at[:10] if user.created_at else 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if user.last_scan_date %}
+                                                {{ user.last_scan_date[:10] }}
+                                            {% else %}
+                                                Never
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if user.get('locked_until') %}
+                                            <span class="badge bg-danger">Locked</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="editUser('{{ user_id }}')"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editUserModal">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-warning" 
+                                                    onclick="manageCredits('{{ user_id }}')">
+                                                <i class="fas fa-coins"></i>
+                                            </button>
+                                            {% if not user.is_admin or user_id != current_user.id %}
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="deleteUser('{{ user_id }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Showing {{ users|length }} users</small>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="exportUsers()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="refreshUsers()">
+                                <i class="fas fa-redo me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Activity Chart -->
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>User Activity (Last 30 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userActivityChart" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <button class="list-group-item list-group-item-action" 
+                                        onclick="addCreditsToAll()">
+                                    <i class="fas fa-gift me-2"></i>Add Credits to All Users
+                                </button>
+                                <button class="list-group-item list-group-item-action" 
+                                        onclick="resetDailyScans()">
+                                    <i class="fas fa-redo me-2"></i>Reset Daily Scan Limits
+                                </button>
+                                <button class="list-group-item list-group-item-action text-danger"
+                                        onclick="lockInactiveUsers()">
+                                    <i class="fas fa-lock me-2"></i>Lock Inactive Users
+                                </button>
+                                <button class="list-group-item list-group-item-action"
+                                        onclick="exportUserData()">
+                                    <i class="fas fa-file-export me-2"></i>Export User Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm" onsubmit="addUser(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="newUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" id="newUserPassword" required>
+                        <div class="form-text">Password must meet security requirements.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account Type</label>
+                        <select class="form-select" id="newUserType">
+                            <option value="user">Standard User</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Initial Credit Points</label>
+                        <input type="number" class="form-control" id="newUserCredits" value="10" min="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm" onsubmit="updateUser(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="editUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account Type</label>
+                        <select class="form-select" id="editUserType">
+                            <option value="user">Standard User</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Credit Points</label>
+                        <input type="number" class="form-control" id="editUserCredits" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="editUserStatus">
+                            <option value="active">Active</option>
+                            <option value="locked">Locked</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Credits Modal -->
+<div class="modal fade" id="creditsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Credit Points</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="creditsForm" onsubmit="updateCredits(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="creditsUserId">
+                    <div class="mb-3">
+                        <label class="form-label">User Email</label>
+                        <input type="text" class="form-control" id="creditsUserEmail" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Credits</label>
+                        <input type="number" class="form-control" id="currentCredits" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Action</label>
+                        <select class="form-select" id="creditAction">
+                            <option value="add">Add Credits</option>
+                            <option value="subtract">Subtract Credits</option>
+                            <option value="set">Set Credits</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="creditAmount" min="1" value="10">
+                        <div class="form-text">Enter the amount of credits to add, subtract, or set.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea class="form-control" id="creditReason" rows="2" 
+                                  placeholder="Optional reason for credit adjustment"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Credits</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// User management functions
+function editUser(userId) {
+    // In real app, fetch user data from API
+    const userRow = document.querySelector(`#user-${userId}`);
+    const email = userRow.querySelector('td:nth-child(2)').textContent;
+    const isAdmin = userRow.querySelector('td:nth-child(3) span').textContent === 'Admin';
+    
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUserEmail').value = email;
+    document.getElementById('editUserType').value = isAdmin ? 'admin' : 'user';
+    // Set other values from user data
+}
+
+function updateUser(event) {
+    event.preventDefault();
+    const userId = document.getElementById('editUserId').value;
+    
+    // In real app, make API call to update user
+    alert(`User ${userId} would be updated. In real app, this would call the backend API.`);
+    $('#editUserModal').modal('hide');
+}
+
+function manageCredits(userId) {
+    const userRow = document.querySelector(`#user-${userId}`);
+    const email = userRow.querySelector('td:nth-child(2)').textContent;
+    const credits = userRow.querySelector('td:nth-child(5) span').textContent;
+    
+    document.getElementById('creditsUserId').value = userId;
+    document.getElementById('creditsUserEmail').value = email;
+    document.getElementById('currentCredits').value = credits;
+    
+    $('#creditsModal').modal('show');
+}
+
+function updateCredits(event) {
+    event.preventDefault();
+    const userId = document.getElementById('creditsUserId').value;
+    
+    // In real app, make API call to update credits
+    alert(`Credits for user ${userId} would be updated. In real app, this would call the backend API.`);
+    $('#creditsModal').modal('hide');
+}
+
+function addUser(event) {
+    event.preventDefault();
+    // In real app, make API call to add user
+    alert('New user would be created. In real app, this would call the backend API.');
+    $('#addUserModal').modal('hide');
+}
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchUsers');
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        
+        rows.forEach(row => {
+            const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const type = row.querySelector('td:nth-child(3) span').textContent.toLowerCase();
+            row.style.display = email.includes(searchTerm) || type.includes(searchTerm) ? '' : 'none';
+        });
+    });
+    
+    // Initialize chart
+    const ctx = document.getElementById('userActivityChart').getContext('2d');
+    
+    // Sample data
+    const days = Array.from({length: 30}, (_, i) => `Day ${i+1}`);
+    const newUsers = Array.from({length: 30}, () => Math.floor(Math.random() * 5));
+    const activeUsers = Array.from({length: 30}, () => Math.floor(Math.random() * 20) + 10);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'New Users',
+                data: newUsers,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.1
+            }, {
+                label: 'Active Users',
+                data: activeUsers,
+                borderColor: '#27ae60',
+                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+
+// Quick action functions
+function addCreditsToAll() {
+    if (confirm('Add credits to all users? This will add 10 credits to every user.')) {
+        alert('Credits would be added to all users. In real app, this would call the backend API.');
+    }
+}
+
+function resetDailyScans() {
+    if (confirm('Reset daily scan counts for all users?')) {
+        alert('Daily scans would be reset. In real app, this would call the backend API.');
+    }
+}
+
+function lockInactiveUsers() {
+    if (confirm('Lock users inactive for more than 30 days?')) {
+        alert('Inactive users would be locked. In real app, this would call the backend API.');
+    }
+}
+
+function exportUserData() {
+    alert('User data would be exported as CSV. In real app, this would generate a download.');
+}
+
+function exportUsers() {
+    alert('User list would be exported. In real app, this would generate a CSV file.');
+}
+
+function refreshUsers() {
+    location.reload();
+}
+</script>
+
+<style>
+.stat-card {
+    border: none;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}

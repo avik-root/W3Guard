@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - W3Guard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        border-top: 4px solid #3498db;
+    }
+    
+    .stat-box.warning {
+        border-top-color: #f39c12;
+    }
+    
+    .stat-box.danger {
+        border-top-color: #e74c3c;
+    }
+    
+    .stat-box.success {
+        border-top-color: #27ae60;
+    }
+    
+    .stat-box .number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    
+    .stat-box .label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="mb-4 text-white">Admin Dashboard</h1>
+            
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                <button onclick="toggleMaintenance()" id="maintenance-btn" 
+                                        class="btn {% if admin_settings.maintenance_mode %}btn-warning{% else %}btn-secondary{% endif %}">
+                                    <i class="fas {% if admin_settings.maintenance_mode %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>
+                                    {% if admin_settings.maintenance_mode %}Maintenance ON{% else %}Maintenance OFF{% endif %}
+                                </button>
+                                <a href="{{ url_for('admin_users') }}" class="btn btn-primary">
+                                    <i class="fas fa-users"></i> Manage Users
+                                </a>
+                                <a href="{{ url_for('admin_settings') }}" class="btn btn-info">
+                                    <i class="fas fa-cog"></i> System Settings
+                                </a>
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addNewsModal">
+                                    <i class="fas fa-plus"></i> Add News
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="admin-stats">
+                <div class="stat-box">
+                    <div class="number">{{ total_users }}</div>
+                    <div class="label">Total Users</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number">{{ total_scans }}</div>
+                    <div class="label">Total Scans</div>
+                </div>
+                <div class="stat-box warning">
+                    <div class="number">{{ daily_scans }}</div>
+                    <div class="label">Today's Scans</div>
+                </div>
+                <div class="stat-box success">
+                    <div class="number">{{ success_rate }}%</div>
+                    <div class="label">Success Rate</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <!-- Chart - REAL DATA -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Scan Statistics (Last 7 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="scanChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Scans - REAL DATA -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recent Scans</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>URL</th>
+                                            <th>Result</th>
+                                            <th>Confidence</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for scan in recent_scans %}
+                                        <tr>
+                                            <td>
+                                                {% if user_email_map %}
+                                                    {{ user_email_map.get(scan.user_id, 'Unknown')[:15] }}{% if user_email_map.get(scan.user_id, '')|length > 15 %}...{% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">User ID: {{ scan.user_id[:8] }}...</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-truncate" style="max-width: 200px;">
+                                                {{ scan.url }}
+                                            </td>
+                                            <td>
+                                                {% if scan.result == 'safe' %}
+                                                    <span class="badge bg-success">Safe</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Phishing</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ "%.0f"|format(scan.confidence * 100) }}%</td>
+                                            <td>{{ scan.timestamp[11:16] }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="col-lg-4">
+                    <!-- Top Domains - REAL DATA -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Top Scanned Domains</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if top_domains %}
+                            <ul class="list-group list-group-flush">
+                                {% for domain, count in top_domains %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ domain[:20] }}{% if domain|length > 20 %}...{% endif %}
+                                    <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted text-center">No domain data yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Active Users - REAL DATA -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Most Active Users</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if active_users %}
+                            <ul class="list-group list-group-flush">
+                                {% for user in active_users %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ user.email[:15] }}{% if user.email|length > 15 %}...{% endif %}</strong><br>
+                                            <small class="text-muted">{{ user.total_scans }} scans</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-info">{{ user.credit_points }} credits</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted text-center">No user activity yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- System Status - REAL DATA -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">System Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>ML Model Status</span>
+                                        <span class="badge bg-success">Active</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Database</span>
+                                        <span class="badge bg-success">Online</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Maintenance Mode</span>
+                                        <span class="badge {% if admin_settings.maintenance_mode %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {% if admin_settings.maintenance_mode %}ON{% else %}OFF{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Scans Today</span>
+                                        <span class="badge bg-info">{{ daily_scans }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add News Modal -->
+<div class="modal fade" id="addNewsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add News Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newsForm" onsubmit="addNews(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newsTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="newsTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newsContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="newsContent" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add News</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize chart with REAL DATA
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('scanChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ last_7_days|tojson }},
+            datasets: [{
+                label: 'Safe',
+                data: {{ last_7_days_safe|tojson }},
+                backgroundColor: '#27ae60'
+            }, {
+                label: 'Phishing',
+                data: {{ last_7_days_phishing|tojson }},
+                backgroundColor: '#e74c3c'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+
+async function addNews(event) {
+    event.preventDefault();
+    
+    const title = document.getElementById('newsTitle').value;
+    const content = document.getElementById('newsContent').value;
+    
+    try {
+        const response = await fetch('/admin/news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, content })
+        });
+        
+        if (response.ok) {
+            alert('News added successfully!');
+            location.reload();
+        } else {
+            alert('Failed to add news');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add news');
+    }
+}
+</script>
+{% endblock %}

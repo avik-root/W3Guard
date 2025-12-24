@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Results - W3Guard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-file-alt me-2"></i>Scan Results</h4>
+                        <span class="badge bg-secondary">{{ scan.timestamp[:19] }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- URL Info -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-link me-2"></i>Scanned URL</h6>
+                        <div class="alert alert-light">
+                            <code class="text-break">{{ scan.url }}</code>
+                        </div>
+                    </div>
+                    
+                    <!-- Result Card -->
+                    <div class="card mb-4 {% if scan.result == 'safe' %}result-safe{% else %}result-phishing{% endif %}">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title">
+                                        {% if scan.result == 'safe' %}
+                                            <i class="fas fa-check-circle text-success me-2"></i>SAFE URL
+                                        {% else %}
+                                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>PHISHING DETECTED
+                                        {% endif %}
+                                    </h5>
+                                    <p class="card-text">
+                                        {% if scan.result == 'safe' %}
+                                            This URL appears to be safe based on our analysis.
+                                        {% else %}
+                                            Warning: This URL shows characteristics of phishing attempts.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="confidence-display">
+                                        <h2 class="mb-0 {% if scan.result == 'safe' %}text-success{% else %}text-danger{% endif %}">
+                                            {{ (scan.confidence * 100)|int }}%
+                                        </h2>
+                                        <small class="text-muted">Confidence Score</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Factors -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Risk Factors Detected</h6>
+                        {% if scan.details.risk_factors %}
+                        <div class="row">
+                            {% for factor in scan.details.risk_factors %}
+                            <div class="col-md-6 mb-2">
+                                <div class="alert alert-warning py-2 mb-2">
+                                    <i class="fas fa-exclamation-circle me-2"></i>{{ factor }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>No significant risk factors detected
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Feature Analysis -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-chart-bar me-2"></i>Feature Analysis</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Feature</th>
+                                        <th>Value</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for key, value in scan.features.items() %}
+                                    <tr>
+                                        <td>{{ key|replace('_', ' ')|title }}</td>
+                                        <td>
+                                            {% if value is number %}
+                                                {{ "%.2f"|format(value) }}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if value is number and value > 0.7 %}
+                                                <span class="badge bg-danger">High</span>
+                                            {% elif value is number and value > 0.3 %}
+                                                <span class="badge bg-warning">Medium</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Low</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-clipboard-check me-2"></i>Recommendations</h6>
+                        <div class="alert {% if scan.result == 'safe' %}alert-success{% else %}alert-danger{% endif %}">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-{% if scan.result == 'safe' %}check{% else %}ban{% endif %}-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="alert-heading">
+                                        {% if scan.result == 'safe' %}
+                                            Safe to Proceed
+                                        {% else %}
+                                            Do Not Proceed
+                                        {% endif %}
+                                    </h5>
+                                    <p class="mb-0">
+                                        {% if scan.result == 'safe' %}
+                                            This URL passed our security checks. However, always exercise caution and verify the website through other means if you're unsure.
+                                        {% else %}
+                                            We strongly recommend not visiting this URL or providing any personal information. Delete any emails containing this link and report them as phishing.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('scan') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Scan Another URL
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                            <i class="fas fa-print me-2"></i>Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Risk Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="riskChart" width="300" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Top Detection Factors</h5>
+                </div>
+                <div class="card-body">
+                    {% if scan.details.top_features %}
+                    <ul class="list-group list-group-flush">
+                        {% for feature in scan.details.top_features %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ feature.name|replace('_', ' ')|title }}
+                            <span class="badge bg-primary rounded-pill">{{ feature.importance }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted text-center">No significant factors detected</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% if scan.result == 'phishing' %}
+                        <a href="#" class="list-group-item list-group-item-action list-group-item-danger">
+                            <i class="fas fa-ban me-2"></i>Report to Authorities
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action list-group-item-warning">
+                            <i class="fas fa-envelope me-2"></i>Report Email as Phishing
+                        </a>
+                        {% endif %}
+                        <a href="https://safebrowsing.google.com/safebrowsing/report_phish/" 
+                           target="_blank" class="list-group-item list-group-item-action">
+                            <i class="fab fa-google me-2"></i>Report to Google Safe Browsing
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#shareModal">
+                            <i class="fas fa-share-alt me-2"></i>Share Scan Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card fade-in mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About This Scan</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <i class="fas fa-fingerprint me-2"></i>
+                            <strong>Scan ID:</strong> {{ scan.id[:8] }}...
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-robot me-2"></i>
+                            <strong>Detection Method:</strong> {{ scan.details.method|default('ML Model') }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-database me-2"></i>
+                            <strong>Features Analyzed:</strong> {{ scan.features|length }}
+                        </li>
+                        <li>
+                            <i class="fas fa-history me-2"></i>
+                            <strong>Scan Duration:</strong> ~2 seconds
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Scan Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Shareable Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareLink" 
+                               value="{{ url_for('scan_results', scan_id=scan.id, _external=True) }}" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Note: The share link requires login to view the results.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    shareLink.select();
+    shareLink.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(shareLink.value);
+    
+    // Show feedback
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+    }, 2000);
+}
+
+// Risk chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    
+    // Calculate percentages using JavaScript instead of Jinja2
+    let safePercentage, phishingPercentage;
+    
+    {% if scan.result == 'safe' %}
+        safePercentage = {{ scan.confidence * 100 }};
+        phishingPercentage = 100 - safePercentage;
+    {% else %}
+        phishingPercentage = {{ scan.confidence * 100 }};
+        safePercentage = 100 - phishingPercentage;
+    {% endif %}
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Safe Indicators', 'Risk Indicators'],
+            datasets: [{
+                data: [safePercentage, phishingPercentage],
+                backgroundColor: [
+                    '#27ae60',
+                    '#e74c3c'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toFixed(1) + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.confidence-display {
+    padding: 15px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.result-safe {
+    border-left: 5px solid #27ae60;
+    background-color: rgba(39, 174, 96, 0.1);
+}
+
+.result-phishing {
+    border-left: 5px solid #e74c3c;
+    background-color: rgba(231, 76, 60, 0.1);
+}
+</style>
+{% endblock %}
