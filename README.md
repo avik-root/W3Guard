@@ -159,7 +159,7 @@ python admin_config.py init
 ```
 
 Follow the prompts to create your admin account:
-- Email: `admin@w3guard.edu` (or your email)
+- Email: `mintfire.server@gmail.com` (or your email)
 - Password: Must include uppercase, lowercase, number, special character
 
 ### Step 6: Run Application
@@ -206,7 +206,7 @@ Application will be available at: `http://localhost:5900`
 
 #### 1. Login as Admin
 ```
-Email:    admin@w3guard.edu (from setup)
+Email:    mintfire.server@gmail.com (from setup)
 Password: Your chosen password
 ```
 
@@ -278,7 +278,7 @@ Edit in Admin Panel → Settings:
 ```python
 {
     "site_name": "W3Guard",                      # Your site name
-    "contact_email": "admin@w3guard.edu",        # Support email
+    "contact_email": "mintfire.server@gmail.com",        # Support email
     "max_scans_per_day": 10,                     # Daily limit
     "default_credits": 10,                        # New user credits
     "site_description": "Advanced Phishing Detection",
@@ -695,7 +695,7 @@ W3Guard is designed for educational purposes. Always use responsibly and ethical
 1. **Check Documentation** - Most questions are answered there
 2. **Search Issues** - Your question might be answered already
 3. **Create Issue** - Detailed description of problem
-4. **Email Support** - admin@w3guard.edu
+4. **Email Support** - mintfire.server@gmail.com
 
 ### Reporting Security Issues
 🔒 **IMPORTANT**: Do NOT create public issues for security vulnerabilities.
@@ -761,9 +761,9 @@ Test Coverage 85%+
 
 ## 📞 Contact
 
-- **Email**: admin@w3guard.edu
-- **Issues**: [GitHub Issues](https://github.com/yourusername/w3guard/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/w3guard/discussions)
+- **Email**: mintfire.server@gmail.com
+- **Issues**: [GitHub Issues](https://github.com/avik-root/w3guard/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/avik-root/w3guard/discussions)
 
 ---
 
