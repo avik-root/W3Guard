@@ -1,5 +1,5 @@
 {
-  "maintenance_mode": false,
+  "maintenance_mode": true,
   "site_name": "W3Guard",
   "contact_email": "admin@w3guard.edu",
   "max_scans_per_day": "10",
